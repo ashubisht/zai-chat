@@ -1,0 +1,148 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Mark as pre-release (true/false)'
+        required: false
+        default: 'false'
+        type: boolean
+      draft:
+        description: 'Mark as draft (true/false)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  build-and-release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          # Mac Intel (x64)
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            name: macos-x64
+            artifact: Z.AI Chat-x64.dmg
+          # Mac ARM (Apple Silicon)
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            name: macos-arm64
+            artifact: Z.AI Chat-arm64.dmg
+          # Windows x64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: windows-x64
+            artifact: Z.AI Chat-Setup-x64.msi
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay-rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get version from package.json
+        id: get-version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION"
+
+      - name: Build Tauri app
+        run: npm run tauri build -- --target ${{ matrix.target }}
+        env:
+          TAURI_BUNDLE_SIGNER_IDENTITY: ${{ secrets.APPLE_CERTIFICATE_TEAM_IDENTITY }}
+
+      - name: List build outputs
+        shell: bash
+        run: |
+          echo "Build outputs:"
+          if [ "${{ matrix.os }}" == "macos-latest" ]; then
+            ls -lh src-tauri/target/release/bundle/dmg/
+          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+            ls -lh src-tauri/target/release/bundle/msi/
+          fi
+
+      - name: Upload Mac DMG artifact
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            src-tauri/target/release/bundle/dmg/*.dmg
+
+      - name: Upload Windows MSI artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            src-tauri/target/release/bundle/msi/*.msi
+
+      - name: Create Release
+        if: matrix.name == 'macos-x64'
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: ${{ inputs.draft }}
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: true
+          files: |
+            src-tauri/target/release/bundle/dmg/*.dmg
+            src-tauri/target/release/bundle/msi/*.msi
+          body: |
+            ## Z.AI Chat v${{ env.VERSION }}
+
+            A beautiful, cross-platform desktop GUI application for interacting with Z.AI's GLM API.
+
+            ### What's Included
+
+            **macOS (Intel):** `Z.AI Chat-x64.dmg`
+            **macOS (Apple Silicon):** `Z.AI Chat-arm64.dmg`
+            **Windows:** `Z.AI Chat-Setup-x64.msi`
+
+            ### Features
+
+            - 🔐 Secure API key storage (Keychain on Mac, Credential Manager on Windows)
+            - 💾 Conversation history with local persistence
+            - 🎨 Modern dark/light theme support
+            - 📝 Markdown rendering with syntax highlighting
+            - 🎨 SVG image generation and rendering
+            - 🌙 Multiple GLM models (GLM-5, GLM-4 Plus, GLM-4.7, GLM-4, GLM-3 Turbo, GLM-3)
+            - ⚙️ Conversation settings (temperature, system prompt)
+            - 📊 Regular & Coding API plans
+
+            ### Installation
+
+            **macOS:**
+            1. Download the `.dmg` file
+            2. Drag Z.AI Chat to Applications folder
+            3. Launch from Applications or Spotlight
+
+            **Windows:**
+            1. Download the `.msi` file
+            2. Double-click to run installer
+            3. Launch from Start Menu
+
+            ### System Requirements
+
+            **macOS:** macOS 11 (Big Sur) or later
+            **Windows:** Windows 10 or later (x64)
+
+            ---
+            Built with ❤️ using [Tauri 2.x](https://tauri.app/)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
