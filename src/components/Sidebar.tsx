@@ -38,6 +38,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     conv.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Truncate long titles for display
+  const truncateTitle = (title: string, maxLength: number = 40) => {
+    if (title.length <= maxLength) return title;
+    return title.substring(0, maxLength) + '...';
+  };
+
   return (
     <>
       {/* Overlay for mobile */}
@@ -126,8 +132,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       }}
                       className="flex-1 text-left"
                     >
-                      <div className="font-medium text-sm truncate text-foreground">
-                        {conv.title}
+                      <div className="font-medium text-sm text-foreground" title={conv.title}>
+                        {truncateTitle(conv.title)}
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
                         {new Date(conv.updated_at).toLocaleDateString()}

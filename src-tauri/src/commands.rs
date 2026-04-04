@@ -6,12 +6,6 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
-// Types for API key storage
-#[derive(Serialize, Deserialize)]
-pub struct EncryptedData {
-    encrypted: String,
-}
-
 // Types for conversations
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Message {
