@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useChatStore } from '../lib/store';
 import { cn } from '../lib/utils';
 import {
@@ -28,6 +28,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   } = useChatStore();
 
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Debug: Log conversations when they change
+  useEffect(() => {
+    console.log('Sidebar - Conversations updated:', conversations.length, conversations);
+  }, [conversations]);
 
   const filteredConversations = conversations.filter((conv) =>
     conv.title.toLowerCase().includes(searchQuery.toLowerCase())

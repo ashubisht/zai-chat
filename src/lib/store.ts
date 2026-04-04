@@ -85,7 +85,13 @@ export const useChatStore = create<ChatStore>()(
             updated_at: Date.now(),
           };
           conversationId = newConversation.id;
-          set({ currentConversationId: conversationId, conversations: [...conversations, newConversation] });
+          const updatedConversations = [...conversations, newConversation];
+          set({ currentConversationId: conversationId, conversations: updatedConversations });
+
+          console.log('Creating conversation from first message:', newConversation);
+          // Save the new conversation immediately
+          await conversationAPI.save(newConversation);
+          console.log('Conversation saved from first message');
         }
 
         // Build message history for API
@@ -123,8 +129,10 @@ export const useChatStore = create<ChatStore>()(
           // Update conversation
           const updatedConversations = conversations.map((conv) => {
             if (conv.id === conversationId) {
+              const isFirstMessage = conv.messages.length === 0;
               return {
                 ...conv,
+                title: isFirstMessage ? generateTitle(content) : conv.title,
                 messages: [
                   ...conv.messages,
                   { role: 'user', content, timestamp: userMessage.timestamp },
@@ -145,7 +153,14 @@ export const useChatStore = create<ChatStore>()(
           // Save conversation to disk
           const conversation = updatedConversations.find((c) => c.id === conversationId);
           if (conversation) {
-            await conversationAPI.save(conversation);
+            try {
+              console.log('Saving conversation with messages:', conversation.id, conversation.messages.length);
+              await conversationAPI.save(conversation);
+              console.log('Conversation saved successfully with messages');
+            } catch (saveError) {
+              console.error('Failed to save conversation:', saveError);
+              // Don't fail the entire operation if save fails, just log it
+            }
           }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
@@ -155,10 +170,30 @@ export const useChatStore = create<ChatStore>()(
 
       // Create a new conversation
       createConversation: () => {
+        const newConversation: Conversation = {
+          id: generateId(),
+          title: 'New Conversation',
+          messages: [],
+          created_at: Date.now(),
+          updated_at: Date.now(),
+        };
+
+        const { conversations } = get();
+        const updatedConversations = [...conversations, newConversation];
+
+        console.log('Creating new conversation:', newConversation);
         set({
           messages: [],
-          currentConversationId: null,
+          currentConversationId: newConversation.id,
+          conversations: updatedConversations,
           error: null,
+        });
+
+        // Save the new conversation immediately
+        conversationAPI.save(newConversation).then(() => {
+          console.log('New conversation saved successfully');
+        }).catch((err) => {
+          console.error('Failed to save new conversation:', err);
         });
       },
 
@@ -244,7 +279,9 @@ export const useChatStore = create<ChatStore>()(
       // Load conversations from disk
       loadConversations: async () => {
         try {
+          console.log('Loading conversations from disk...');
           const convs = await conversationAPI.getAll();
+          console.log('Loaded conversations:', convs.length, convs);
           set({ conversations: convs });
         } catch (error) {
           console.error('Failed to load conversations:', error);

@@ -39,19 +39,25 @@ async function handleWebModeCommand<T>(command: string, args?: any): Promise<T> 
       return undefined as T;
 
     case 'save_conversation': {
+      console.log('[Web Mode] Saving conversation:', args.conversation.id);
       const conversations = JSON.parse(localStorage.getItem('zai_conversations') || '[]');
       const index = conversations.findIndex((c: Conversation) => c.id === args.conversation.id);
       if (index >= 0) {
         conversations[index] = args.conversation;
+        console.log('[Web Mode] Updated existing conversation at index:', index);
       } else {
         conversations.push(args.conversation);
+        console.log('[Web Mode] Added new conversation. Total:', conversations.length);
       }
       localStorage.setItem('zai_conversations', JSON.stringify(conversations));
+      console.log('[Web Mode] Saved to localStorage');
       return undefined as T;
     }
 
     case 'get_conversations':
-      return JSON.parse(localStorage.getItem('zai_conversations') || '[]') as T;
+      const convs = JSON.parse(localStorage.getItem('zai_conversations') || '[]');
+      console.log('[Web Mode] Retrieved conversations from localStorage:', convs.length);
+      return convs as T;
 
     case 'delete_conversation': {
       const conversations = JSON.parse(localStorage.getItem('zai_conversations') || '[]');

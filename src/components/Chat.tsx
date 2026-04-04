@@ -100,10 +100,6 @@ export function Chat() {
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground mt-2 text-center">
-              Press Enter to send, Shift + Enter for new line
-            </p>
-
       {/* Error display */}
       {error && (
         <div className="mx-6 mb-4 p-4 bg-red-600/10 dark:bg-red-900/20 border border-red-600/30 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
@@ -228,6 +224,10 @@ export function Chat() {
               </button>
             </div>
           </div>
+
+          <p className="text-xs text-muted-foreground mt-2 text-center">
+            Press Enter to send, Shift + Enter for new line
+          </p>
         </form>
       </div>
     </div>
