@@ -9,7 +9,7 @@ import { Menu } from 'lucide-react';
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
 
-  const { checkApiKey, loadConversations, createConversation, settings } = useChatStore();
+  const { checkApiKey, loadConversations, createConversation, settings, apiKey, toggleApiKeyModal } = useChatStore();
 
   // Apply theme to document
   useEffect(() => {
@@ -20,6 +20,13 @@ function App() {
       root.classList.remove('light');
     }
   }, [settings.theme]);
+
+  // Open API key modal if no key is set
+  useEffect(() => {
+    if (!apiKey) {
+      toggleApiKeyModal(true);
+    }
+  }, [apiKey, toggleApiKeyModal]);
 
   useEffect(() => {
     // Initialize app

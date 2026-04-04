@@ -1,11 +1,12 @@
 import { useChatStore } from '../lib/store';
-import { X, Key, Trash2, Moon, Sun, Sliders, Trash } from 'lucide-react';
+import { X, Key, Trash2, Moon, Sun, Sliders, Trash, Plus } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export function Settings() {
   const {
     isSettingsOpen,
     toggleSettings,
+    toggleApiKeyModal,
     settings,
     updateSettings,
     apiKey,
@@ -58,7 +59,7 @@ export function Settings() {
               <h3 className="font-semibold">API Key</h3>
             </div>
             <div className="p-4 bg-zinc-800 rounded-lg">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-zinc-400 mb-1">Status</p>
                   <p className="font-medium">
@@ -69,7 +70,7 @@ export function Settings() {
                     )}
                   </p>
                 </div>
-                {apiKey && (
+                {apiKey ? (
                   <button
                     onClick={handleDeleteApiKey}
                     className="flex items-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg transition-colors text-sm font-medium"
@@ -77,8 +78,30 @@ export function Settings() {
                     <Trash2 className="w-4 h-4" />
                     Delete
                   </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      toggleSettings(false);
+                      toggleApiKeyModal(true);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Set API Key
+                  </button>
                 )}
               </div>
+              {apiKey && (
+                <button
+                  onClick={() => {
+                    toggleSettings(false);
+                    toggleApiKeyModal(true);
+                  }}
+                  className="mt-3 w-full text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Update API Key
+                </button>
+              )}
             </div>
           </section>
 
