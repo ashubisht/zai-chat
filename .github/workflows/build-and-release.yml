@@ -3,13 +3,17 @@ name: Build and Release
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: 'Release version (e.g., 1.0.1)'
+        required: true
+        type: string
       prerelease:
-        description: 'Mark as pre-release (true/false)'
+        description: 'Mark as pre-release'
         required: false
         default: 'false'
         type: boolean
       draft:
-        description: 'Mark as draft (true/false)'
+        description: 'Mark as draft'
         required: false
         default: 'false'
         type: boolean
@@ -58,12 +62,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Get version from package.json
-        id: get-version
+      - name: Create and push git tag
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "VERSION=$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Tauri app
         run: npm run tauri build -- --target ${{ matrix.target }}
@@ -100,24 +106,23 @@ jobs:
         if: matrix.name == 'macos-x64'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
           draft: ${{ inputs.draft }}
           prerelease: ${{ inputs.prerelease }}
-          generate_release_notes: true
-          files: |
-            src-tauri/target/release/bundle/dmg/*.dmg
-            src-tauri/target/release/bundle/msi/*.msi
+          generate_release_notes: false
           body: |
-            ## Z.AI Chat v${{ env.VERSION }}
+            ## Z.AI Chat v${{ inputs.version }}
 
             A beautiful, cross-platform desktop GUI application for interacting with Z.AI's GLM API.
 
-            ### What's Included
+            ### 📦 Downloads
 
             **macOS (Intel):** `Z.AI Chat-x64.dmg`
             **macOS (Apple Silicon):** `Z.AI Chat-arm64.dmg`
             **Windows:** `Z.AI Chat-Setup-x64.msi`
 
-            ### Features
+            ### ✨ Features
 
             - 🔐 Secure API key storage (Keychain on Mac, Credential Manager on Windows)
             - 💾 Conversation history with local persistence
@@ -128,7 +133,7 @@ jobs:
             - ⚙️ Conversation settings (temperature, system prompt)
             - 📊 Regular & Coding API plans
 
-            ### Installation
+            ### 📥 Installation
 
             **macOS:**
             1. Download the `.dmg` file
@@ -140,7 +145,7 @@ jobs:
             2. Double-click to run installer
             3. Launch from Start Menu
 
-            ### System Requirements
+            ### 💻 System Requirements
 
             **macOS:** macOS 11 (Big Sur) or later
             **Windows:** Windows 10 or later (x64)
