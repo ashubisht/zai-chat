@@ -1,5 +1,5 @@
 import { useChatStore } from '../lib/store';
-import { X, Key, Trash2, Moon, Sun, Sliders, Trash, Plus } from 'lucide-react';
+import { X, Key, Trash2, Moon, Sun, Sliders, Trash, Plus, Code } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export function Settings() {
@@ -103,6 +103,45 @@ export function Settings() {
                 </button>
               )}
             </div>
+          </section>
+
+          {/* Plan Selection */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Code className="w-5 h-5 text-purple-400" />
+              <h3 className="font-semibold">API Plan</h3>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => updateSettings({ plan: 'regular' })}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors',
+                  settings.plan === 'regular'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-zinc-800 hover:bg-zinc-700'
+                )}
+              >
+                <span className="text-base">💬</span>
+                Regular
+              </button>
+              <button
+                onClick={() => updateSettings({ plan: 'coding' })}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors',
+                  settings.plan === 'coding'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-zinc-800 hover:bg-zinc-700'
+                )}
+              >
+                <span className="text-base">👨‍💻</span>
+                Coding
+              </button>
+            </div>
+            <p className="text-xs text-zinc-500">
+              {settings.plan === 'regular'
+                ? 'Regular plan for general chat and conversations'
+                : 'Coding plan optimized for programming and code generation'}
+            </p>
           </section>
 
           {/* Appearance */}

@@ -47,6 +47,7 @@ export const useChatStore = create<ChatStore>()(
         temperature: 0.7,
         systemPrompt: 'You are a helpful assistant. Always respond in English.',
         theme: 'dark',
+        plan: 'regular',
       },
       isApiKeyModalOpen: false,
       isSettingsOpen: false,
@@ -97,7 +98,8 @@ export const useChatStore = create<ChatStore>()(
             apiMessages,
             apiKey,
             settings.model,
-            settings.temperature
+            settings.temperature,
+            settings.plan
           );
 
           // Add assistant message

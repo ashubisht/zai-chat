@@ -71,4 +71,5 @@ export interface AppSettings {
   temperature: number;
   systemPrompt: string;
   theme: 'dark' | 'light';
+  plan: 'regular' | 'coding';
 }

@@ -1,7 +1,10 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { ChatRequest, ChatResponse, ErrorResponse, Conversation, ChatMessage } from './types';
 
-const API_ENDPOINT = 'https://api.z.ai/api/paas/v4/chat/completions';
+const API_ENDPOINTS = {
+  regular: 'https://api.z.ai/api/paas/v4/chat/completions',
+  coding: 'https://api.z.ai/api/coding/paas/v4/chat/completions',
+};
 
 // Check if we're running in Tauri or web mode
 const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
@@ -84,7 +87,8 @@ export async function sendChatCompletion(
   messages: ChatMessage[],
   apiKey: string,
   model = 'glm-4.7',
-  temperature = 0.7
+  temperature = 0.7,
+  plan: 'regular' | 'coding' = 'regular'
 ): Promise<ChatResponse> {
   try {
     const request: ChatRequest = {
@@ -93,7 +97,9 @@ export async function sendChatCompletion(
       temperature,
     };
 
-    const response = await fetch(API_ENDPOINT, {
+    const endpoint = API_ENDPOINTS[plan];
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
