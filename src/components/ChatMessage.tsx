@@ -4,7 +4,7 @@ import rehypeHighlight from 'rehype-highlight';
 import type { AppMessage } from '../lib/types';
 import { cn } from '../lib/utils';
 import { Bot, User, Copy, Check, Download } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ChatMessageProps {
   message: AppMessage;
@@ -14,7 +14,31 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const [copied, setCopied] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [svgUrl, setSvgUrl] = useState<string | null>(null);
   const isUser = message.role === 'user';
+
+  // Extract SVG code from message content
+  const extractSVG = (content: string): string | null => {
+    const svgMatch = content.match(/<svg[^>]*>[\s\S]*?<\/svg>/i);
+    return svgMatch ? svgMatch[0] : null;
+  };
+
+  const svgCode = extractSVG(message.content);
+  const hasSVG = !!svgCode;
+
+  // Create Blob URL for SVG when component mounts or svgCode changes
+  useEffect(() => {
+    if (svgCode) {
+      try {
+        const blob = new Blob([svgCode], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        setSvgUrl(url);
+        return () => URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Failed to create SVG URL:', error);
+      }
+    }
+  }, [svgCode]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -24,15 +48,33 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   const handleDownloadImage = () => {
     if (message.imageUrl) {
-      // Create a temporary anchor element to download the image
+      // Download external image
       const link = document.createElement('a');
       link.href = message.imageUrl;
       link.download = `generated-image-${message.id}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    } else if (svgCode) {
+      // Download SVG as file
+      const blob = new Blob([svgCode], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `generated-image-${message.id}.svg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
   };
+
+  // Get text content without SVG for display
+  const getTextContent = (content: string) => {
+    return content.replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '').trim();
+  };
+
+  const textContent = getTextContent(message.content);
 
   return (
     <div
@@ -72,15 +114,58 @@ export function ChatMessage({ message }: ChatMessageProps) {
             <p className="whitespace-pre-wrap text-foreground">{message.content}</p>
           ) : (
             <div className="relative group">
-              {message.content && (
+              {/* Display text content (excluding SVG code) */}
+              {textContent && (
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeHighlight]}
                 >
-                  {message.content}
+                  {textContent}
                 </ReactMarkdown>
               )}
 
+              {/* Show SVG code in a code block */}
+              {hasSVG && (
+                <div className="mt-4">
+                  <details className="cursor-pointer">
+                    <summary className="text-sm text-muted-foreground hover:text-foreground mb-2 select-none">
+                      View SVG Code
+                    </summary>
+                    <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-xs">
+                      <code>{svgCode}</code>
+                    </pre>
+                  </details>
+                </div>
+              )}
+
+              {/* Display SVG image if present */}
+              {hasSVG && (
+                <div className="mt-4 relative">
+                  <div className="bg-card rounded-lg shadow-lg border border-border p-4">
+                    {/* Render the SVG using Blob URL */}
+                    {svgUrl ? (
+                      <img
+                        src={svgUrl}
+                        alt="Generated SVG"
+                        className="max-w-full max-h-[500px] object-contain mx-auto"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-64 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground">Loading SVG...</p>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleDownloadImage}
+                    className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-card/80 backdrop-blur-sm rounded-lg hover:bg-muted border border-border shadow-lg"
+                    title="Download SVG"
+                  >
+                    <Download className="w-4 h-4 text-foreground" />
+                  </button>
+                </div>
+              )}
+
+              {/* Display external image if present */}
               {message.imageUrl && (
                 <div className="mt-4 relative">
                   {imageLoading && (
