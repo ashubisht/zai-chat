@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { ChatRequest, ChatResponse, ErrorResponse, Conversation, ChatMessage } from './types';
+import type { ChatRequest, ChatResponse, ErrorResponse, Conversation, ChatMessage, ImageGenerationResponse } from './types';
 
 const API_ENDPOINTS = {
   regular: 'https://api.z.ai/api/paas/v4/chat/completions',
@@ -186,6 +186,91 @@ export const conversationAPI = {
     await invokeCommand('clear_all_conversations');
   },
 };
+
+/**
+ * Image generation using Z.AI's CogView API
+ */
+export async function generateImage(
+  prompt: string,
+  apiKey: string
+): Promise<string> {
+  try {
+    const response = await fetch('https://api.z.ai/api/paas/v4/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        prompt,
+        model: 'cogview-3',
+        size: '1024x1024',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData: ErrorResponse = await response.json().catch(() => ({}));
+      throw new APIError(
+        errorData.error?.message || 'Image generation failed',
+        response.status
+      );
+    }
+
+    const data: ImageGenerationResponse = await response.json();
+
+    if (!data.data || data.data.length === 0) {
+      throw new APIError('No image generated');
+    }
+
+    // Return the URL or base64 data
+    const imageData = data.data[0];
+    if (!imageData) {
+      throw new APIError('No image data in response');
+    }
+
+    if (imageData.url) {
+      return imageData.url;
+    } else if (imageData.b64_json) {
+      return `data:image/png;base64,${imageData.b64_json}`;
+    } else {
+      throw new APIError('No image URL or data in response');
+    }
+  } catch (error) {
+    if (error instanceof APIError) {
+      throw error;
+    }
+
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new APIError('Network error. Please check your internet connection.');
+    }
+
+    throw new APIError(
+      error instanceof Error ? error.message : 'Image generation failed'
+    );
+  }
+}
+
+/**
+ * Check if a message is requesting image generation
+ */
+export function isImageGenerationRequest(content: string): boolean {
+  const imageKeywords = [
+    'generate image',
+    'create image',
+    'draw',
+    'paint',
+    'make a picture',
+    'create a picture',
+    'generate a picture',
+    'image of',
+    'picture of',
+    'illustration',
+    'visual',
+  ];
+
+  const lowerContent = content.toLowerCase();
+  return imageKeywords.some(keyword => lowerContent.includes(keyword));
+}
 
 /**
  * Generate a unique ID

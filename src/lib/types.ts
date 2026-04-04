@@ -33,6 +33,20 @@ export interface ChatResponse {
   model?: string;
 }
 
+// Image generation types
+export interface ImageGenerationRequest {
+  prompt: string;
+  model?: string;
+  size?: string;
+}
+
+export interface ImageGenerationResponse {
+  data: Array<{
+    url?: string;
+    b64_json?: string;
+  }>;
+}
+
 export interface ErrorResponse {
   error?: {
     message: string;
@@ -46,6 +60,7 @@ export interface ConversationMessage {
   role: string;
   content: string;
   timestamp: number;
+  imageUrl?: string | undefined;
 }
 
 export interface Conversation {
@@ -64,6 +79,7 @@ export interface AppMessage {
   role: MessageRole;
   content: string;
   timestamp: number;
+  imageUrl?: string;
 }
 
 export interface AppSettings {

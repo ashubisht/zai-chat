@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AppMessage, Conversation, AppSettings, ChatMessage } from './types';
-import { sendChatCompletion, apiKeyAPI, conversationAPI, generateId, generateTitle } from './api';
+import { sendChatCompletion, apiKeyAPI, conversationAPI, generateId, generateTitle, generateImage, isImageGenerationRequest } from './api';
 
 interface ChatStore {
   // State
@@ -133,6 +133,69 @@ Remember: Your goal is to be genuinely helpful while maintaining accuracy, safet
         ];
 
         try {
+          // Check if this is an image generation request
+          if (isImageGenerationRequest(content)) {
+            console.log('Image generation request detected');
+
+            try {
+              const imageUrl = await generateImage(content, apiKey);
+
+              const assistantMessage: AppMessage = {
+                id: generateId(),
+                role: 'assistant',
+                content: `Here's your generated image:\n\n*Click the download button in the top-right corner of the image to save it.*`,
+                timestamp: Date.now(),
+                imageUrl,
+              };
+
+              const updatedMessages = [...messages, userMessage, assistantMessage];
+
+              // Update conversation
+              const updatedConversations = conversations.map((conv) => {
+                if (conv.id === conversationId) {
+                  const isFirstMessage = conv.messages.length === 0;
+                  return {
+                    ...conv,
+                    title: isFirstMessage ? `Image: ${generateTitle(content)}` : conv.title,
+                    messages: [
+                      ...conv.messages,
+                      { role: 'user', content, timestamp: userMessage.timestamp },
+                      {
+                        role: 'assistant',
+                        content: assistantMessage.content,
+                        timestamp: assistantMessage.timestamp,
+                        imageUrl: assistantMessage.imageUrl,
+                      },
+                    ],
+                    updated_at: Date.now(),
+                  };
+                }
+                return conv;
+              });
+
+              set({
+                messages: updatedMessages,
+                conversations: updatedConversations,
+                isLoading: false,
+              });
+
+              // Save conversation
+              const conversation = updatedConversations.find((c) => c.id === conversationId);
+              if (conversation) {
+                try {
+                  await conversationAPI.save(conversation);
+                } catch (saveError) {
+                  console.error('Failed to save conversation:', saveError);
+                }
+              }
+            } catch (imageError) {
+              const errorMessage = imageError instanceof Error ? imageError.message : 'Failed to generate image';
+              set({ error: errorMessage, isLoading: false });
+            }
+            return;
+          }
+
+          // Regular text chat
           // Call Z.AI API
           const response = await sendChatCompletion(
             apiMessages,
