@@ -9,7 +9,17 @@ import { Menu } from 'lucide-react';
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
 
-  const { checkApiKey, loadConversations, createConversation } = useChatStore();
+  const { checkApiKey, loadConversations, createConversation, settings } = useChatStore();
+
+  // Apply theme to document
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.theme === 'light') {
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+    }
+  }, [settings.theme]);
 
   useEffect(() => {
     // Initialize app
@@ -60,7 +70,7 @@ function App() {
   }, [createConversation]);
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-100 overflow-hidden">
+    <div className="flex h-screen bg-background text-foreground overflow-hidden">
       {/* Sidebar */}
       <Sidebar
         isOpen={isSidebarOpen}

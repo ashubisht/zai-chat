@@ -25,6 +25,28 @@
     --ring: 240 4.9% 83.9%;
     --radius: 0.5rem;
   }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+  }
 }
 
 body {
@@ -48,33 +70,34 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #27272a;
+  background: hsl(var(--muted));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #52525b;
+  background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #71717a;
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* Markdown code block styles */
 .markdown-body {
   line-height: 1.6;
-  color: #e4e4e7;
+  color: hsl(var(--foreground));
 }
 
 .markdown-body code {
-  background-color: #27272a;
+  background-color: hsl(var(--muted));
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-size: 0.9em;
 }
 
 .markdown-body pre {
-  background-color: #18181b;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   padding: 1em;
   border-radius: 8px;
   overflow-x: auto;
@@ -112,26 +135,31 @@ code {
 }
 
 .markdown-body a {
-  color: #60a5fa;
+  color: hsl(var(--primary));
+  opacity: 0.8;
   text-decoration: underline;
 }
 
-.markdown-body blockquote {
-  border-left: 4px solid #3f3f46;
-  padding-left: 1em;
-  margin: 1em 0;
-  color: #a1a1aa;
+.markdown-body a:hover {
+  opacity: 1;
 }
 
-/* Highlight.js theme - Dark */
+.markdown-body blockquote {
+  border-left: 4px solid hsl(var(--border));
+  padding-left: 1em;
+  margin: 1em 0;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Highlight.js theme */
 .hljs {
-  background: #18181b;
-  color: #e4e4e7;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
 }
 
 .hljs-comment,
 .hljs-quote {
-  color: #71717a;
+  color: hsl(var(--muted-foreground));
   font-style: italic;
 }
 
@@ -156,7 +184,7 @@ code {
 }
 
 .hljs-tag {
-  color: #e4e4e7;
+  color: hsl(var(--foreground));
 }
 
 .hljs-name {
