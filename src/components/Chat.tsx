@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '../lib/store';
 import { ChatMessage } from './ChatMessage';
-import { Send, Loader2, Bot } from 'lucide-react';
+import { Send, Loader2, Bot, ChevronDown, ChevronUp, Settings2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export function Chat() {
@@ -10,11 +10,14 @@ export function Chat() {
     isLoading,
     error,
     sendMessage,
+    settings,
+    updateSettings,
   } = useChatStore();
 
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -128,9 +131,20 @@ export function Chat() {
       )}
 
       {/* Input */}
-      <div className="border-t border-zinc-800 p-4 bg-zinc-950">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+      <div className="border-t border-zinc-800 bg-zinc-950">
+        <form onSubmit={handleSubmit} className="p-4 max-w-4xl mx-auto">
           <div className="relative flex items-end gap-3">
+            {/* Model Selector - Always Visible */}
+            <select
+              value={settings.model}
+              onChange={(e) => updateSettings({ model: e.target.value })}
+              className="flex-shrink-0 px-3 py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="glm-4.7">GLM-4.7</option>
+              <option value="glm-4">GLM-4</option>
+              <option value="glm-3-turbo">GLM-3 Turbo</option>
+            </select>
+
             <textarea
               ref={textareaRef}
               value={input}
@@ -169,6 +183,65 @@ export function Chat() {
             Press Enter to send, Shift + Enter for new line
           </p>
         </form>
+
+        {/* Advanced Settings Toggle */}
+        <div className="px-4 pb-4 max-w-4xl mx-auto">
+          <button
+            type="button"
+            onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-colors text-sm text-zinc-400"
+          >
+            <Settings2 className="w-4 h-4" />
+            <span>Conversation Settings</span>
+            {isAdvancedOpen ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+
+          {/* Advanced Settings Panel */}
+          {isAdvancedOpen && (
+            <div className="mt-3 space-y-4 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+              {/* Temperature Slider */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">Temperature</label>
+                  <span className="text-xs text-zinc-400 bg-zinc-800 px-2 py-1 rounded">
+                    {settings.temperature.toFixed(1)}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  value={settings.temperature}
+                  onChange={(e) => updateSettings({ temperature: parseFloat(e.target.value) })}
+                  className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <p className="text-xs text-zinc-500 mt-1">
+                  Lower = more focused, Higher = more creative
+                </p>
+              </div>
+
+              {/* System Prompt */}
+              <div>
+                <label className="block text-sm font-medium mb-2">System Prompt</label>
+                <textarea
+                  value={settings.systemPrompt}
+                  onChange={(e) => updateSettings({ systemPrompt: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm resize-none"
+                  placeholder="Define how the AI assistant behaves..."
+                />
+                <p className="text-xs text-zinc-500 mt-1">
+                  This defines the AI's behavior for this conversation
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
