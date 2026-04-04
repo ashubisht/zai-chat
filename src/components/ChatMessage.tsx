@@ -114,47 +114,41 @@ export function ChatMessage({ message }: ChatMessageProps) {
             <p className="whitespace-pre-wrap text-foreground">{message.content}</p>
           ) : (
             <div className="relative group">
-              {/* Display text content (excluding SVG code) */}
-              {textContent && (
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeHighlight]}
-                >
-                  {textContent}
-                </ReactMarkdown>
-              )}
-
-              {/* Show SVG code in a code block */}
-              {hasSVG && (
-                <div className="mt-4">
-                  <details className="cursor-pointer">
-                    <summary className="text-sm text-muted-foreground hover:text-foreground mb-2 select-none">
-                      View SVG Code
-                    </summary>
-                    <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-xs">
-                      <code>{svgCode}</code>
-                    </pre>
-                  </details>
-                </div>
-              )}
-
               {/* Display SVG image if present */}
               {hasSVG && (
-                <div className="mt-4 relative">
+                <div className="mt-4 group">
                   <div className="bg-card rounded-lg shadow-lg border border-border p-4">
                     {/* Render the SVG using Blob URL */}
                     {svgUrl ? (
-                      <img
-                        src={svgUrl}
-                        alt="Generated SVG"
-                        className="max-w-full max-h-[500px] object-contain mx-auto"
-                      />
+                      <div className="mb-4">
+                        <img
+                          src={svgUrl}
+                          alt="Generated SVG"
+                          className="max-w-full max-h-[500px] object-contain mx-auto rounded-lg"
+                        />
+                      </div>
                     ) : (
-                      <div className="flex items-center justify-center h-64 bg-muted rounded-lg">
+                      <div className="flex items-center justify-center h-64 bg-muted rounded-lg mb-4">
                         <p className="text-sm text-muted-foreground">Loading SVG...</p>
                       </div>
                     )}
+
+                    {/* Collapsible SVG code */}
+                    <details>
+                      <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground select-none">
+                        View SVG Code
+                      </summary>
+
+                      {/* SVG Code */}
+                      <div className="mt-2">
+                        <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-xs">
+                          <code>{svgCode}</code>
+                        </pre>
+                      </div>
+                    </details>
                   </div>
+
+                  {/* Download button - positioned over the card */}
                   <button
                     onClick={handleDownloadImage}
                     className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-card/80 backdrop-blur-sm rounded-lg hover:bg-muted border border-border shadow-lg"
@@ -163,6 +157,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
                     <Download className="w-4 h-4 text-foreground" />
                   </button>
                 </div>
+              )}
+
+              {/* Display text content (excluding SVG code) */}
+              {textContent && !hasSVG && (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeHighlight]}
+                >
+                  {textContent}
+                </ReactMarkdown>
               )}
 
               {/* Display external image if present */}
