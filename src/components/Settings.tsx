@@ -30,21 +30,21 @@ export function Settings() {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-xl border border-border w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zinc-800 sticky top-0 bg-zinc-900 z-10">
+        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
-              <Sliders className="w-5 h-5 text-zinc-300" />
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+              <Sliders className="w-5 h-5 text-muted-foreground" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Settings</h2>
-              <p className="text-sm text-zinc-400">Customize your experience</p>
+              <h2 className="text-xl font-bold text-foreground">Settings</h2>
+              <p className="text-sm text-muted-foreground">Customize your experience</p>
             </div>
           </div>
           <button
             onClick={() => toggleSettings(false)}
-            className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-muted rounded-lg transition-colors text-foreground"
           >
             <X className="w-5 h-5" />
           </button>
@@ -56,17 +56,17 @@ export function Settings() {
           <section className="space-y-4">
             <div className="flex items-center gap-2">
               <Key className="w-5 h-5 text-blue-400" />
-              <h3 className="font-semibold">API Key</h3>
+              <h3 className="font-semibold text-foreground">API Key</h3>
             </div>
-            <div className="p-4 bg-zinc-800 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-zinc-400 mb-1">Status</p>
-                  <p className="font-medium">
+                  <p className="text-sm text-muted-foreground mb-1">Status</p>
+                  <p className="font-medium text-foreground">
                     {apiKey ? (
-                      <span className="text-emerald-400">● Configured</span>
+                      <span className="text-emerald-600 dark:text-emerald-400">● Configured</span>
                     ) : (
-                      <span className="text-red-400">● Not set</span>
+                      <span className="text-red-600 dark:text-red-400">● Not set</span>
                     )}
                   </p>
                 </div>
@@ -109,7 +109,7 @@ export function Settings() {
           <section className="space-y-4">
             <div className="flex items-center gap-2">
               <Code className="w-5 h-5 text-purple-400" />
-              <h3 className="font-semibold">API Plan</h3>
+              <h3 className="font-semibold text-foreground">API Plan</h3>
             </div>
             <div className="flex gap-2">
               <button
@@ -118,7 +118,7 @@ export function Settings() {
                   'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors',
                   settings.plan === 'regular'
                     ? 'bg-blue-600 text-white'
-                    : 'bg-zinc-800 hover:bg-zinc-700'
+                    : 'bg-muted hover:bg-muted/70 text-foreground'
                 )}
               >
                 <span className="text-base">💬</span>
@@ -130,14 +130,14 @@ export function Settings() {
                   'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors',
                   settings.plan === 'coding'
                     ? 'bg-blue-600 text-white'
-                    : 'bg-zinc-800 hover:bg-zinc-700'
+                    : 'bg-muted hover:bg-muted/70 text-foreground'
                 )}
               >
                 <span className="text-base">👨‍💻</span>
                 Coding
               </button>
             </div>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted-foreground">
               {settings.plan === 'regular'
                 ? 'Regular plan for general chat and conversations'
                 : 'Coding plan optimized for programming and code generation'}
@@ -148,7 +148,7 @@ export function Settings() {
           <section className="space-y-4">
             <div className="flex items-center gap-2">
               <Sun className="w-5 h-5 text-yellow-400" />
-              <h3 className="font-semibold">Appearance</h3>
+              <h3 className="font-semibold text-foreground">Appearance</h3>
             </div>
             <div className="flex gap-2">
               <button
@@ -157,7 +157,7 @@ export function Settings() {
                   'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors',
                   settings.theme === 'dark'
                     ? 'bg-blue-600 text-white'
-                    : 'bg-zinc-800 hover:bg-zinc-700'
+                    : 'bg-muted hover:bg-muted/70 text-foreground'
                 )}
               >
                 <Moon className="w-4 h-4" />
@@ -169,7 +169,7 @@ export function Settings() {
                   'flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors',
                   settings.theme === 'light'
                     ? 'bg-blue-600 text-white'
-                    : 'bg-zinc-800 hover:bg-zinc-700'
+                    : 'bg-muted hover:bg-muted/70 text-foreground'
                 )}
               >
                 <Sun className="w-4 h-4" />
@@ -182,11 +182,11 @@ export function Settings() {
           <section className="space-y-4">
             <div className="flex items-center gap-2">
               <Trash className="w-5 h-5 text-red-400" />
-              <h3 className="font-semibold">Data Management</h3>
+              <h3 className="font-semibold text-foreground">Data Management</h3>
             </div>
             <button
               onClick={handleClearAll}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg transition-colors font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600/20 hover:bg-red-600/30 text-red-600 dark:text-red-400 rounded-lg transition-colors font-medium"
             >
               <Trash2 className="w-4 h-4" />
               Clear All Conversations

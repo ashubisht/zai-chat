@@ -24,7 +24,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
     <div
       className={cn(
         'flex gap-4 p-6',
-        isUser ? 'bg-zinc-900/50' : 'bg-transparent'
+        isUser ? 'bg-muted/30' : 'bg-transparent'
       )}
     >
       <div
@@ -42,10 +42,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-2">
-          <span className="font-semibold text-sm">
+          <span className="font-semibold text-sm text-foreground">
             {isUser ? 'You' : 'Z.AI Assistant'}
           </span>
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             {new Date(message.timestamp).toLocaleTimeString([], {
               hour: '2-digit',
               minute: '2-digit',
@@ -55,7 +55,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
         <div className="prose prose-invert max-w-none markdown-body">
           {isUser ? (
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            <p className="whitespace-pre-wrap text-foreground">{message.content}</p>
           ) : (
             <div className="relative group">
               <ReactMarkdown
@@ -66,13 +66,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
               </ReactMarkdown>
               <button
                 onClick={handleCopy}
-                className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-zinc-800 rounded-lg"
+                className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-muted rounded-lg"
                 title="Copy to clipboard"
               >
                 {copied ? (
-                  <Check className="w-4 h-4 text-emerald-500" />
+                  <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-500" />
                 ) : (
-                  <Copy className="w-4 h-4 text-zinc-400" />
+                  <Copy className="w-4 h-4 text-muted-foreground" />
                 )}
               </button>
             </div>

@@ -87,14 +87,14 @@ function App() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile Header */}
-        <div className="lg:hidden flex items-center gap-3 p-4 border-b border-zinc-800 bg-zinc-900">
+        <div className="lg:hidden flex items-center gap-3 p-4 border-b border-border bg-card">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="font-bold text-lg">Z.AI Chat</h1>
+          <h1 className="font-bold text-lg text-foreground">Z.AI Chat</h1>
         </div>
 
         {/* Chat Area */}
