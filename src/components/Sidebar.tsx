@@ -8,6 +8,7 @@ import {
   Trash2,
   X,
   Settings,
+  Sliders,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,6 +24,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     deleteConversation,
     switchConversation,
     toggleSettings,
+    toggleConversationSettings,
   } = useChatStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,6 +148,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           {/* Footer */}
           <div className="p-4 border-t border-border space-y-2">
+            <button
+              onClick={() => {
+                toggleConversationSettings(true);
+                if (window.innerWidth < 1024) onClose();
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted rounded-lg transition-colors text-left text-foreground"
+            >
+              <Sliders className="w-5 h-5 text-muted-foreground" />
+              <span className="text-sm">Conversation Settings</span>
+            </button>
             <button
               onClick={() => {
                 toggleSettings(true);

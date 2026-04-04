@@ -14,6 +14,7 @@ interface ChatStore {
   settings: AppSettings;
   isApiKeyModalOpen: boolean;
   isSettingsOpen: boolean;
+  isConversationSettingsOpen: boolean;
 
   // Actions
   sendMessage: (content: string) => Promise<void>;
@@ -30,6 +31,7 @@ interface ChatStore {
   clearAllConversations: () => Promise<void>;
   toggleApiKeyModal: (open: boolean) => void;
   toggleSettings: (open: boolean) => void;
+  toggleConversationSettings: (open: boolean) => void;
 }
 
 export const useChatStore = create<ChatStore>()(
@@ -51,6 +53,7 @@ export const useChatStore = create<ChatStore>()(
       },
       isApiKeyModalOpen: false,
       isSettingsOpen: false,
+      isConversationSettingsOpen: false,
 
       // Send a message to the AI
       sendMessage: async (content: string) => {
@@ -262,6 +265,11 @@ export const useChatStore = create<ChatStore>()(
       // Toggle settings panel
       toggleSettings: (open: boolean) => {
         set({ isSettingsOpen: open });
+      },
+
+      // Toggle conversation settings modal
+      toggleConversationSettings: (open: boolean) => {
+        set({ isConversationSettingsOpen: open });
       },
     }),
     {

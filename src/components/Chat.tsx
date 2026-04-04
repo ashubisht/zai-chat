@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '../lib/store';
 import { ChatMessage } from './ChatMessage';
-import { Send, Loader2, Bot, ChevronDown, ChevronUp, Settings2 } from 'lucide-react';
+import { Send, Loader2, Bot, ChevronDown, Settings2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export function Chat() {
@@ -17,7 +17,6 @@ export function Chat() {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
 
   // Auto-scroll to bottom when new messages arrive
@@ -230,65 +229,6 @@ export function Chat() {
             Press Enter to send, Shift + Enter for new line
           </p>
         </form>
-
-        {/* Advanced Settings Toggle */}
-        <div className="px-4 pb-4 max-w-4xl mx-auto">
-          <button
-            type="button"
-            onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-muted hover:bg-muted/70 rounded-lg transition-colors text-sm text-muted-foreground"
-          >
-            <Settings2 className="w-4 h-4" />
-            <span>Conversation Settings</span>
-            {isAdvancedOpen ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
-
-          {/* Advanced Settings Panel */}
-          {isAdvancedOpen && (
-            <div className="mt-3 space-y-4 p-4 bg-card rounded-lg border border-border">
-              {/* Temperature Slider */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">Temperature</label>
-                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-                    {settings.temperature.toFixed(1)}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  value={settings.temperature}
-                  onChange={(e) => updateSettings({ temperature: parseFloat(e.target.value) })}
-                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Lower = more focused, Higher = more creative
-                </p>
-              </div>
-
-              {/* System Prompt */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-foreground">System Prompt</label>
-                <textarea
-                  value={settings.systemPrompt}
-                  onChange={(e) => updateSettings({ systemPrompt: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm resize-none text-foreground placeholder:text-muted-foreground"
-                  placeholder="Define how the AI assistant behaves..."
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  This defines the AI's behavior for this conversation
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

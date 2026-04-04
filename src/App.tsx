@@ -4,6 +4,7 @@ import { Chat } from './components/Chat';
 import { Sidebar } from './components/Sidebar';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { Settings } from './components/Settings';
+import { ConversationSettingsModal } from './components/ConversationSettingsModal';
 import { Menu } from 'lucide-react';
 
 function App() {
@@ -69,6 +70,7 @@ function App() {
       if (e.key === 'Escape') {
         useChatStore.getState().toggleApiKeyModal(false);
         useChatStore.getState().toggleSettings(false);
+        useChatStore.getState().toggleConversationSettings(false);
       }
     };
 
@@ -104,6 +106,7 @@ function App() {
       {/* Modals */}
       <ApiKeyModal />
       <Settings />
+      <ConversationSettingsModal />
     </div>
   );
 }
