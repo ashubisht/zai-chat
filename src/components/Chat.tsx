@@ -100,6 +100,10 @@ export function Chat() {
         )}
       </div>
 
+      <p className="text-xs text-muted-foreground mt-2 text-center">
+              Press Enter to send, Shift + Enter for new line
+            </p>
+
       {/* Error display */}
       {error && (
         <div className="mx-6 mb-4 p-4 bg-red-600/10 dark:bg-red-900/20 border border-red-600/30 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
@@ -131,7 +135,7 @@ export function Chat() {
               onKeyDown={handleKeyDown}
               placeholder="Send a message..."
               disabled={isLoading}
-              rows={6}
+              rows={3}
               className={cn(
                 'w-full resize-none rounded-xl border border-border bg-muted px-4 py-3',
                 'text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2',
@@ -224,10 +228,6 @@ export function Chat() {
               </button>
             </div>
           </div>
-
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            Press Enter to send, Shift + Enter for new line
-          </p>
         </form>
       </div>
     </div>
