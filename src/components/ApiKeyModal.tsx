@@ -81,7 +81,7 @@ export function ApiKeyModal() {
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="Enter your API key..."
                 className={cn(
-                  'w-full px-4 py-3 bg-zinc-800 border rounded-lg',
+                  'w-full px-4 py-3 pr-12 bg-zinc-800 border rounded-lg',
                   'text-sm placeholder:text-zinc-500',
                   'focus:outline-none focus:ring-2 focus:ring-blue-600',
                   error ? 'border-red-600' : 'border-zinc-700'
