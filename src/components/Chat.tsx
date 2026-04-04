@@ -140,9 +140,12 @@ export function Chat() {
               onChange={(e) => updateSettings({ model: e.target.value })}
               className="flex-shrink-0 px-3 py-3 rounded-xl border border-border bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
             >
+              <option value="glm-5">GLM-5</option>
+              <option value="glm-4-plus">GLM-4 Plus</option>
               <option value="glm-4.7">GLM-4.7</option>
               <option value="glm-4">GLM-4</option>
               <option value="glm-3-turbo">GLM-3 Turbo</option>
+              <option value="glm-3">GLM-3</option>
             </select>
 
             <textarea
