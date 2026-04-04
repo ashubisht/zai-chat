@@ -18,19 +18,12 @@ export function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
-
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
-    }
-  }, [input]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +31,6 @@ export function Chat() {
 
     const message = input.trim();
     setInput('');
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
 
     await sendMessage(message);
   };
@@ -133,21 +123,8 @@ export function Chat() {
       {/* Input */}
       <div className="border-t border-border bg-card">
         <form onSubmit={handleSubmit} className="p-4 max-w-4xl mx-auto">
-          <div className="relative flex items-end gap-3">
-            {/* Model Selector - Always Visible */}
-            <select
-              value={settings.model}
-              onChange={(e) => updateSettings({ model: e.target.value })}
-              className="flex-shrink-0 px-3 py-3 rounded-xl border border-border bg-muted text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
-            >
-              <option value="glm-5">GLM-5</option>
-              <option value="glm-4-plus">GLM-4 Plus</option>
-              <option value="glm-4.7">GLM-4.7</option>
-              <option value="glm-4">GLM-4</option>
-              <option value="glm-3-turbo">GLM-3 Turbo</option>
-              <option value="glm-3">GLM-3</option>
-            </select>
-
+          {/* Integrated Input Area */}
+          <div className="relative">
             <textarea
               ref={textareaRef}
               value={input}
@@ -155,33 +132,100 @@ export function Chat() {
               onKeyDown={handleKeyDown}
               placeholder="Send a message..."
               disabled={isLoading}
-              rows={1}
+              rows={6}
               className={cn(
-                'flex-1 resize-none rounded-xl border border-border bg-muted px-4 py-3',
+                'w-full resize-none rounded-xl border border-border bg-muted px-4 py-3',
                 'text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2',
                 'focus:ring-blue-600 focus:border-transparent disabled:opacity-50',
-                'disabled:cursor-not-allowed max-h-[200px] overflow-y-auto text-foreground'
+                'disabled:cursor-not-allowed text-foreground pb-14' // Extra padding at bottom for buttons
               )}
             />
-            <button
-              type="submit"
-              disabled={!input.trim() || isLoading}
-              className={cn(
-                'flex-shrink-0 px-4 py-3 rounded-xl font-medium text-sm',
-                'transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
-                'focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed',
-                input.trim() && !isLoading
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-muted text-muted-foreground'
-              )}
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Send className="w-5 h-5" />
-              )}
-            </button>
+
+            {/* Integrated Buttons Container */}
+            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+              {/* Model Selector Button */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowModelDropdown(!showModelDropdown)}
+                  className={cn(
+                    'flex items-center gap-2 px-3 py-2 rounded-lg',
+                    'text-sm font-medium transition-colors',
+                    'hover:bg-muted/70 disabled:opacity-50 disabled:cursor-not-allowed',
+                    'bg-card/80 backdrop-blur-sm border border-border',
+                    'text-foreground'
+                  )}
+                  disabled={isLoading}
+                >
+                  <Settings2 className="w-4 h-4" />
+                  <span className="text-xs">
+                    {settings.model === 'glm-5' ? 'GLM-5' :
+                     settings.model === 'glm-4-plus' ? 'GLM-4 Plus' :
+                     settings.model === 'glm-4.7' ? 'GLM-4.7' :
+                     settings.model === 'glm-4' ? 'GLM-4' :
+                     settings.model === 'glm-3-turbo' ? 'GLM-3 Turbo' : 'GLM-3'}
+                  </span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+
+                {/* Model Dropdown */}
+                {showModelDropdown && (
+                  <div className="absolute bottom-full left-0 mb-2 w-56 bg-card rounded-lg border border-border shadow-lg z-10">
+                    <div className="p-1">
+                      {[
+                        { value: 'glm-5', label: 'GLM-5' },
+                        { value: 'glm-4-plus', label: 'GLM-4 Plus' },
+                        { value: 'glm-4.7', label: 'GLM-4.7' },
+                        { value: 'glm-4', label: 'GLM-4' },
+                        { value: 'glm-3-turbo', label: 'GLM-3 Turbo' },
+                        { value: 'glm-3', label: 'GLM-3' },
+                      ].map((model) => (
+                        <button
+                          key={model.value}
+                          type="button"
+                          onClick={() => {
+                            updateSettings({ model: model.value });
+                            setShowModelDropdown(false);
+                          }}
+                          className={cn(
+                            'w-full text-left px-3 py-2 rounded-md text-sm transition-colors',
+                            'hover:bg-muted/70',
+                            settings.model === model.value
+                              ? 'bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
+                              : 'text-foreground'
+                          )}
+                        >
+                          {model.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Send Button */}
+              <button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className={cn(
+                  'p-2 rounded-lg transition-colors',
+                  'focus:outline-none focus:ring-2 focus:ring-blue-600',
+                  'disabled:opacity-50 disabled:cursor-not-allowed',
+                  input.trim() && !isLoading
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-muted/80 text-muted-foreground',
+                  'border border-border'
+                )}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
+
           <p className="text-xs text-muted-foreground mt-2 text-center">
             Press Enter to send, Shift + Enter for new line
           </p>
