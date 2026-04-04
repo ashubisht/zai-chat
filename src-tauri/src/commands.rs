@@ -1,5 +1,6 @@
 use crate::crypto::{decrypt, encrypt, get_encryption_key};
 use anyhow::{anyhow, Result};
+use keyring::{Entry, Error as KeyringError};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -44,13 +45,16 @@ fn get_conversations_dir(app: &AppHandle) -> Result<PathBuf> {
 
 /// Save API key encrypted in platform-specific secure storage
 #[tauri::command]
-pub async fn save_api_key(app: AppHandle, api_key: String) -> Result<(), String> {
+pub async fn save_api_key(api_key: String) -> Result<(), String> {
     let key = get_encryption_key();
     let encrypted = encrypt(&api_key, &key).map_err(|e| e.to_string())?;
 
-    // Use Tauri's secrets API for secure storage
-    app.secrets()
-        .encrypt("api_key", &encrypted)
+    // Use keyring for secure storage (Keychain on Mac, Credential Manager on Windows)
+    let entry = Entry::new("ai-gui-app", "api_key")
+        .map_err(|e| format!("Failed to create keyring entry: {}", e))?;
+
+    entry
+        .set_password(&encrypted)
         .map_err(|e| format!("Failed to save API key: {}", e))?;
 
     log::info!("API key saved successfully");
@@ -59,10 +63,13 @@ pub async fn save_api_key(app: AppHandle, api_key: String) -> Result<(), String>
 
 /// Get the saved API key
 #[tauri::command]
-pub async fn get_api_key(app: AppHandle) -> Result<Option<String>, String> {
-    let encrypted = match app.secrets().get("api_key") {
-        Ok(Some(key)) => key,
-        Ok(None) => return Ok(None),
+pub async fn get_api_key() -> Result<Option<String>, String> {
+    let entry = Entry::new("ai-gui-app", "api_key")
+        .map_err(|e| format!("Failed to create keyring entry: {}", e))?;
+
+    let encrypted = match entry.get_password() {
+        Ok(password) => password,
+        Err(KeyringError::NoEntry) => return Ok(None),
         Err(e) => return Err(format!("Failed to get API key: {}", e)),
     };
 
@@ -74,9 +81,12 @@ pub async fn get_api_key(app: AppHandle) -> Result<Option<String>, String> {
 
 /// Delete the saved API key
 #[tauri::command]
-pub async fn delete_api_key(app: AppHandle) -> Result<(), String> {
-    app.secrets()
-        .delete("api_key")
+pub async fn delete_api_key() -> Result<(), String> {
+    let entry = Entry::new("ai-gui-app", "api_key")
+        .map_err(|e| format!("Failed to create keyring entry: {}", e))?;
+
+    entry
+        .delete_credential()
         .map_err(|e| format!("Failed to delete API key: {}", e))?;
 
     log::info!("API key deleted successfully");

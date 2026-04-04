@@ -3,6 +3,7 @@ use aes_gcm::{
     Aes256Gcm, Nonce,
 };
 use anyhow::{anyhow, Result};
+use base64::Engine;
 
 /// Encrypts a plaintext string using AES-256-GCM
 ///
@@ -24,7 +25,7 @@ pub fn encrypt(plaintext: &str, key: &[u8; 32]) -> Result<String> {
     let mut combined = nonce.to_vec();
     combined.extend_from_slice(&ciphertext);
 
-    Ok(base64::encode(&combined))
+    Ok(base64::prelude::BASE64_STANDARD.encode(&combined))
 }
 
 /// Decrypts a base64-encoded string that contains nonce + ciphertext
@@ -36,7 +37,7 @@ pub fn encrypt(plaintext: &str, key: &[u8; 32]) -> Result<String> {
 /// # Returns
 /// The decrypted plaintext string
 pub fn decrypt(encoded: &str, key: &[u8; 32]) -> Result<String> {
-    let combined = base64::decode(encoded).map_err(|e| anyhow!("Base64 decode failed: {}", e))?;
+    let combined = base64::prelude::BASE64_STANDARD.decode(encoded).map_err(|e| anyhow!("Base64 decode failed: {}", e))?;
 
     if combined.len() < 12 {
         return Err(anyhow!("Invalid encrypted data: too short"));
