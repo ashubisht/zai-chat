@@ -103,6 +103,13 @@ export async function sendChatCompletion(
       temperature,
     };
 
+    console.log('🔍 Sending API request:', {
+      model,
+      endpoint: API_ENDPOINTS[plan],
+      plan,
+      messageCount: messages.length,
+    });
+
     const endpoint = API_ENDPOINTS[plan];
 
     const response = await fetch(endpoint, {
@@ -122,6 +129,13 @@ export async function sendChatCompletion(
     }
 
     const data: ChatResponse = await response.json();
+
+    // Log what model actually responded
+    console.log('✅ API Response:', {
+      requestedModel: model,
+      actualModel: data.model,
+      usage: data.usage,
+    });
 
     // Validate response
     if (!data.choices || data.choices.length === 0) {
