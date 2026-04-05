@@ -95,11 +95,16 @@ Remember: Your goal is to be genuinely helpful while maintaining accuracy, safet
           return;
         }
 
-        // Check if images are being sent with a non-vision model
+        // Check if images are being sent with a non-vision model (only warn for images)
         const visionModels = ['glm-5v-turbo', 'glm-4.6v', 'glm-4.5v', 'glm-5v', 'glm-4v'];
         const isVisionModel = visionModels.some(vm => settings.model.includes(vm));
 
-        if (images && images.length > 0 && !isVisionModel) {
+        // Only block images for non-vision models, allow documents and videos
+        const hasImagesOnly = images && images.length > 0 && images.every(img =>
+          img.image_url.url.startsWith('data:image/')
+        );
+
+        if (hasImagesOnly && !isVisionModel) {
           set({
             error: `Please select a Vision model (like GLM-4.6V or GLM-5V-Turbo) to analyze images. Current model: ${settings.model}`,
             isLoading: false,
