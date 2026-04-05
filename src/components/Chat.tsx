@@ -159,8 +159,10 @@ export function Chat() {
                   <Settings2 className="w-4 h-4" />
                   <span className="text-xs">
                     {settings.model === 'glm-5' ? 'GLM-5' :
+                     settings.model === 'glm-5-turbo' ? 'GLM-5 Turbo' :
                      settings.model === 'glm-4-plus' ? 'GLM-4 Plus' :
                      settings.model === 'glm-4.7' ? 'GLM-4.7' :
+                     settings.model === 'glm-4.6' ? 'GLM-4.6' :
                      settings.model === 'glm-4' ? 'GLM-4' :
                      settings.model === 'glm-3-turbo' ? 'GLM-3 Turbo' : 'GLM-3'}
                   </span>
@@ -173,8 +175,10 @@ export function Chat() {
                     <div className="p-1">
                       {[
                         { value: 'glm-5', label: 'GLM-5' },
+                        { value: 'glm-5-turbo', label: 'GLM-5 Turbo' },
                         { value: 'glm-4-plus', label: 'GLM-4 Plus' },
                         { value: 'glm-4.7', label: 'GLM-4.7' },
+                        { value: 'glm-4.6', label: 'GLM-4.6' },
                         { value: 'glm-4', label: 'GLM-4' },
                         { value: 'glm-3-turbo', label: 'GLM-3 Turbo' },
                         { value: 'glm-3', label: 'GLM-3' },

@@ -45,7 +45,7 @@ export const useChatStore = create<ChatStore>()(
       error: null,
       apiKey: null,
       settings: {
-        model: 'glm-4.7',
+        model: 'glm-4.6',
         temperature: 0.7,
         systemPrompt: `You are a helpful, intelligent AI assistant designed to provide accurate, thoughtful, and useful information.
 
