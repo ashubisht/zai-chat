@@ -1,7 +1,15 @@
 // Types for the Z.AI API
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | ChatMessageContent[];
+}
+
+export interface ChatMessageContent {
+  type: 'text' | 'image_url';
+  text?: string;
+  image_url?: {
+    url: string; // data URL like "data:image/jpeg;base64,..."
+  };
 }
 
 export interface ChatRequest {
@@ -61,6 +69,7 @@ export interface ConversationMessage {
   content: string;
   timestamp: number;
   imageUrl?: string | undefined;
+  images?: Array<{ url: string; type: string }>;
 }
 
 export interface Conversation {
@@ -80,6 +89,7 @@ export interface AppMessage {
   content: string;
   timestamp: number;
   imageUrl?: string;
+  images?: Array<{ url: string; type: string }>;
 }
 
 export interface AppSettings {

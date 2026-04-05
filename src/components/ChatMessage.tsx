@@ -111,7 +111,22 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
         <div className="prose prose-invert max-w-none markdown-body">
           {isUser ? (
-            <p className="whitespace-pre-wrap text-foreground">{message.content}</p>
+            <>
+              {/* Display uploaded images */}
+              {message.images && message.images.length > 0 && (
+                <div className="mb-3 flex gap-2 flex-wrap">
+                  {message.images.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img.url}
+                      alt={`Uploaded ${idx + 1}`}
+                      className="max-w-[200px] max-h-[200px] object-cover rounded-lg border border-border"
+                    />
+                  ))}
+                </div>
+              )}
+              <p className="whitespace-pre-wrap text-foreground">{message.content}</p>
+            </>
           ) : (
             <div className="relative group">
               {/* Display SVG image if present */}

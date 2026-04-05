@@ -108,6 +108,8 @@ export async function sendChatCompletion(
       endpoint: API_ENDPOINTS[plan],
       plan,
       messageCount: messages.length,
+      hasMultimodal: messages.some(m => typeof m.content !== 'string'),
+      messages: JSON.stringify(messages, null, 2),
     });
 
     const endpoint = API_ENDPOINTS[plan];

@@ -1,8 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '../lib/store';
 import { ChatMessage } from './ChatMessage';
-import { Send, Loader2, Bot, ChevronDown, Settings2 } from 'lucide-react';
+import { Send, Loader2, Bot, ChevronDown, Settings2, Image as ImageIcon, X } from 'lucide-react';
 import { cn } from '../lib/utils';
+
+interface UploadedImage {
+  id: string;
+  file: File;
+  preview: string;
+  base64: string;
+}
 
 export function Chat() {
   const {
@@ -17,7 +24,13 @@ export function Chat() {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+
+  // Check if current model supports vision
+  const visionModels = ['glm-5v-turbo', 'glm-4.6v', 'glm-4.5v', 'glm-5v', 'glm-4v'];
+  const isVisionModel = visionModels.some(vm => settings.model.includes(vm));
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -26,12 +39,22 @@ export function Chat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && uploadedImages.length === 0) || isLoading) return;
 
     const message = input.trim();
     setInput('');
+    const images = [...uploadedImages];
+    setUploadedImages([]);
 
-    await sendMessage(message);
+    // Convert images to the format expected by the API
+    const imageContents = images.map((img) => ({
+      type: 'image_url' as const,
+      image_url: {
+        url: `data:${img.file.type};base64,${img.base64}`,
+      },
+    }));
+
+    await sendMessage(message, imageContents);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -39,6 +62,64 @@ export function Chat() {
       e.preventDefault();
       handleSubmit(e);
     }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Process each image
+    const newImages: UploadedImage[] = [];
+
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload only image files');
+        continue;
+      }
+
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Image size must be less than 10MB');
+        continue;
+      }
+
+      // Create preview
+      const preview = URL.createObjectURL(file);
+
+      // Convert to base64
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve) => {
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          // Remove data URL prefix to get just the base64
+          resolve(result.split(',')[1]);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      newImages.push({
+        id: Date.now().toString() + Math.random(),
+        file,
+        preview,
+        base64,
+      });
+    }
+
+    setUploadedImages((prev) => [...prev, ...newImages]);
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeImage = (id: string) => {
+    setUploadedImages((prev) => {
+      const image = prev.find((img) => img.id === id);
+      if (image) {
+        URL.revokeObjectURL(image.preview);
+      }
+      return prev.filter((img) => img.id !== id);
+    });
   };
 
   return (
@@ -122,6 +203,41 @@ export function Chat() {
       {/* Input */}
       <div className="border-t border-border bg-card">
         <form onSubmit={handleSubmit} className="p-4 max-w-4xl mx-auto">
+          {/* Image Previews */}
+          {uploadedImages.length > 0 && (
+            <>
+              {!isVisionModel && (
+                <div className="mb-3 p-3 bg-amber-600/10 dark:bg-amber-900/20 border border-amber-600/30 dark:border-amber-800 rounded-lg text-amber-600 dark:text-amber-400 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">⚠️</span>
+                    <div className="flex-1">
+                      <p className="font-semibold mb-1">Vision model required</p>
+                      <p className="text-xs">Please select a Vision model (GLM-4.6V or GLM-5V-Turbo) from the dropdown to analyze images. Current model: {settings.model}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="mb-3 flex gap-2 flex-wrap">
+                {uploadedImages.map((image) => (
+                  <div key={image.id} className="relative group">
+                    <img
+                      src={image.preview}
+                      alt="Upload"
+                      className="h-20 w-20 object-cover rounded-lg border border-border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(image.id)}
+                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
           {/* Integrated Input Area */}
           <div className="relative">
             <textarea
@@ -140,10 +256,39 @@ export function Chat() {
               )}
             />
 
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+
             {/* Integrated Buttons Container */}
             <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-              {/* Model Selector Button */}
-              <div className="relative">
+              {/* Left side: Model selector and Image upload */}
+              <div className="flex items-center gap-2">
+                {/* Image Upload Button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className={cn(
+                    'flex items-center gap-2 px-3 py-2 rounded-lg',
+                    'text-sm font-medium transition-colors',
+                    'hover:bg-muted/70 disabled:opacity-50 disabled:cursor-not-allowed',
+                    'bg-card/80 backdrop-blur-sm border border-border',
+                    'text-foreground'
+                  )}
+                  disabled={isLoading}
+                  title="Upload images"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                </button>
+
+                {/* Model Selector Button */}
+                <div className="relative">
                 <button
                   type="button"
                   onClick={() => setShowModelDropdown(!showModelDropdown)}
@@ -161,6 +306,8 @@ export function Chat() {
                     {settings.model === 'glm-4-plus' ? 'GLM-4 Plus' :
                      settings.model === 'glm-5' ? 'GLM-5' :
                      settings.model === 'glm-5-turbo' ? 'GLM-5 Turbo' :
+                     settings.model === 'glm-5v-turbo' ? 'GLM-5V Turbo' :
+                     settings.model === 'glm-4.6v' ? 'GLM-4.6V' :
                      settings.model === 'glm-4.7' ? 'GLM-4.7' :
                      settings.model === 'glm-4.6' ? 'GLM-4.6' :
                      settings.model === 'glm-3-turbo' ? 'GLM-3 Turbo' : 'GLM-3'}
@@ -176,6 +323,8 @@ export function Chat() {
                         { value: 'glm-4-plus', label: 'GLM-4 Plus', desc: 'Highest rate limit' },
                         { value: 'glm-5', label: 'GLM-5', desc: 'Latest model' },
                         { value: 'glm-5-turbo', label: 'GLM-5 Turbo', desc: 'Fast & advanced' },
+                        { value: 'glm-5v-turbo', label: 'GLM-5V Turbo', desc: 'Vision + fast' },
+                        { value: 'glm-4.6v', label: 'GLM-4.6V', desc: 'Vision model' },
                         { value: 'glm-4.7', label: 'GLM-4.7', desc: 'Balanced' },
                         { value: 'glm-4.6', label: 'GLM-4.6', desc: 'Good rate limit' },
                         { value: 'glm-3-turbo', label: 'GLM-3 Turbo', desc: 'Fast & cheap' },
@@ -202,6 +351,7 @@ export function Chat() {
                     </div>
                   </div>
                 )}
+              </div>
               </div>
 
               {/* Send Button */}

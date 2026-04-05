@@ -17,7 +17,7 @@ interface ChatStore {
   isConversationSettingsOpen: boolean;
 
   // Actions
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, images?: Array<{ type: 'image_url'; image_url: { url: string } }>) => Promise<void>;
   createConversation: () => void;
   deleteConversation: (id: string) => Promise<void>;
   switchConversation: (id: string) => Promise<void>;
@@ -87,7 +87,7 @@ Remember: Your goal is to be genuinely helpful while maintaining accuracy, safet
       isConversationSettingsOpen: false,
 
       // Send a message to the AI
-      sendMessage: async (content: string) => {
+      sendMessage: async (content: string, images?: Array<{ type: 'image_url'; image_url: { url: string } }>) => {
         const { apiKey, messages, settings, currentConversationId, conversations } = get();
 
         if (!apiKey) {
@@ -95,12 +95,30 @@ Remember: Your goal is to be genuinely helpful while maintaining accuracy, safet
           return;
         }
 
-        // Add user message
+        // Check if images are being sent with a non-vision model
+        const visionModels = ['glm-5v-turbo', 'glm-4.6v', 'glm-4.5v', 'glm-5v', 'glm-4v'];
+        const isVisionModel = visionModels.some(vm => settings.model.includes(vm));
+
+        if (images && images.length > 0 && !isVisionModel) {
+          set({
+            error: `Please select a Vision model (like GLM-4.6V or GLM-5V-Turbo) to analyze images. Current model: ${settings.model}`,
+            isLoading: false,
+          });
+          return;
+        }
+
+        // Add user message (store image URLs for display)
         const userMessage: AppMessage = {
           id: generateId(),
           role: 'user',
           content,
           timestamp: Date.now(),
+          ...(images && images.length > 0
+            ? {
+                imageUrl: images[0]?.image_url?.url || '',
+                images: images.map((img) => ({ url: img.image_url.url, type: 'image' })),
+              }
+            : {}),
         };
 
         set({ messages: [...messages, userMessage], isLoading: true, error: null });
@@ -129,8 +147,22 @@ Remember: Your goal is to be genuinely helpful while maintaining accuracy, safet
         const apiMessages: ChatMessage[] = [
           { role: 'system', content: settings.systemPrompt },
           ...messages.map((m) => ({ role: m.role, content: m.content })),
-          { role: 'user', content },
         ];
+
+        // Add current message with or without images
+        if (images && images.length > 0) {
+          // Multimodal message: text + images
+          apiMessages.push({
+            role: 'user',
+            content: [
+              { type: 'text', text: content },
+              ...images,
+            ],
+          } as ChatMessage);
+        } else {
+          // Text-only message
+          apiMessages.push({ role: 'user', content });
+        }
 
         try {
           // Check if this is an image generation request
@@ -159,7 +191,13 @@ Remember: Your goal is to be genuinely helpful while maintaining accuracy, safet
                     title: isFirstMessage ? `Image: ${generateTitle(content)}` : conv.title,
                     messages: [
                       ...conv.messages,
-                      { role: 'user', content, timestamp: userMessage.timestamp },
+                      {
+                        role: 'user',
+                        content,
+                        timestamp: userMessage.timestamp,
+                        ...(userMessage.imageUrl && { imageUrl: userMessage.imageUrl }),
+                        ...(userMessage.images && { images: userMessage.images }),
+                      },
                       {
                         role: 'assistant',
                         content: assistantMessage.content,
@@ -229,7 +267,13 @@ Remember: Your goal is to be genuinely helpful while maintaining accuracy, safet
                 title: isFirstMessage ? generateTitle(content) : conv.title,
                 messages: [
                   ...conv.messages,
-                  { role: 'user', content, timestamp: userMessage.timestamp },
+                  {
+                    role: 'user',
+                    content,
+                    timestamp: userMessage.timestamp,
+                    ...(userMessage.imageUrl && { imageUrl: userMessage.imageUrl }),
+                    ...(userMessage.images && { images: userMessage.images }),
+                  },
                   { role: 'assistant', content: assistantMessage.content, timestamp: assistantMessage.timestamp },
                 ],
                 updated_at: Date.now(),
