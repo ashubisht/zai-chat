@@ -9,6 +9,7 @@ import { Menu } from 'lucide-react';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [hasCheckedApiKey, setHasCheckedApiKey] = useState(false);
 
   const { checkApiKey, loadConversations, createConversation, settings, apiKey, toggleApiKeyModal } = useChatStore();
 
@@ -22,16 +23,21 @@ function App() {
     }
   }, [settings.theme]);
 
-  // Open API key modal if no key is set
+  // Open API key modal if no key is set (only after checking)
   useEffect(() => {
-    if (!apiKey) {
+    if (hasCheckedApiKey && !apiKey) {
       toggleApiKeyModal(true);
     }
-  }, [apiKey, toggleApiKeyModal]);
+  }, [apiKey, toggleApiKeyModal, hasCheckedApiKey]);
 
   useEffect(() => {
     // Initialize app
-    checkApiKey();
+    const initApp = async () => {
+      await checkApiKey();
+      setHasCheckedApiKey(true);
+    };
+
+    initApp();
     loadConversations();
 
     // Check screen size
