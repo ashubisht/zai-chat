@@ -71,11 +71,10 @@ jobs:
         shell: bash
         run: |
           echo "Build outputs:"
-          if [ "${{ matrix.os }}" == "macos-latest" ]; then
-            ls -lh src-tauri/target/release/bundle/dmg/
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            ls -lh src-tauri/target/release/bundle/msi/
-          fi
+          echo "All files in src-tauri/target/:"
+          find src-tauri/target/ -type f -name "*.dmg" -o -name "*.msi" -o -name "*.app" 2>/dev/null || true
+          echo "Bundle directory contents:"
+          ls -R src-tauri/target/release/bundle/ 2>/dev/null || echo "No bundle directory found"
 
       - name: Upload Mac DMG artifact
         if: matrix.os == 'macos-latest'
@@ -83,6 +82,7 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
             src-tauri/target/release/bundle/dmg/*.dmg
 
       - name: Upload Windows MSI artifact
@@ -91,10 +91,22 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
             src-tauri/target/release/bundle/msi/*.msi
 
+  release:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R ./artifacts
+
       - name: Create Release
-        if: matrix.name == 'macos-x64'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ inputs.version }}
@@ -102,6 +114,7 @@ jobs:
           draft: ${{ inputs.draft }}
           prerelease: ${{ inputs.prerelease }}
           generate_release_notes: false
+          files: ./artifacts/*/*
           body: |
             ## Z.AI Chat v${{ inputs.version }}
 
