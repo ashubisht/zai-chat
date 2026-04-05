@@ -18,6 +18,9 @@ on:
         default: 'false'
         type: boolean
 
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     runs-on: ${{ matrix.os }}
@@ -106,6 +109,14 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R ./artifacts
 
+      - name: Find and prepare release assets
+        run: |
+          echo "Finding all release assets..."
+          mkdir -p release
+          find ./artifacts -type f \( -name "*.dmg" -o -name "*.msi" \) -exec cp {} release/ \;
+          echo "Files to release:"
+          ls -lh release/
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -114,7 +125,7 @@ jobs:
           draft: ${{ inputs.draft }}
           prerelease: ${{ inputs.prerelease }}
           generate_release_notes: false
-          files: ./artifacts/*/*
+          files: release/*
           body: |
             ## Z.AI Chat v${{ inputs.version }}
 
